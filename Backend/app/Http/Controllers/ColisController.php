@@ -10,31 +10,33 @@ use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\UpdateColisRequest;
 use App\Http\Requests\StoreColisSansCompteRequest;
 use App\Models\ClientSansCompte;
-
+use App\Http\Requests\UpdateStatutColisRequest;
+use App\Models\MouvementColis;
 class ColisController extends Controller
 {
-    public function index(Request $request)
-    {
-        $user = $request->user();
-        $query = Colis::query();
+   public function index(Request $request)
+{
+    $user = $request->user();
+    $query = Colis::query();
 
-        if ($user->role === 'client') {
-            $query->where('client_id', $user->id);
-        }
-
-        if ($request->has('statut')) {
-            $query->where('statut', $request->statut);
-        }
-
-        if ($request->has('destination')) {
-            $query->where('destination', $request->destination);
-        }
-
-        $colis = $query->latest('cree_le')->paginate(15);
-
-        return response()->json($colis);
+    if ($user->role === 'client') {
+        $query->where('client_id', $user->id);
+    } elseif ($request->has('client_id')) {
+        $query->where('client_id', $request->client_id);
     }
 
+    if ($request->has('statut')) {
+        $query->where('statut', $request->statut);
+    }
+
+    if ($request->has('destination')) {
+        $query->where('destination', $request->destination);
+    }
+
+    $colis = $query->latest('cree_le')->paginate(15);
+
+    return response()->json($colis);
+}
     public function store(StoreColisRequest $request)
     {
         $codeSuivi = $this->genererCodeSuivi();
@@ -79,6 +81,54 @@ public function update(UpdateColisRequest $request, Colis $colis)
 
     return response()->json($colis->fresh());
 }
+
+public function updateStatut(UpdateStatutColisRequest $request, Colis $colis)
+{
+    $nouveauStatut = $request->statut;
+    $ancienStatut = $colis->statut;
+
+    // la transition doit suivre l'ordre du cycle de vie
+    if (! $colis->transitionAutorisee($nouveauStatut)) {
+        return response()->json([
+            'message' => "Transition non autorisée : '{$ancienStatut}' ne peut pas passer à '{$nouveauStatut}'.",
+        ], 422);
+    }
+
+    // Mise à jour du statut
+    $colis->statut = $nouveauStatut;
+    $colis->maj_le = now();
+    $colis->save();
+
+    //  enregistrement horodaté de la transition
+    MouvementColis::create([
+        'colis_id'       => $colis->id,
+        'ancien_statut'  => $ancienStatut,
+        'nouveau_statut' => $nouveauStatut,
+        'commentaire'    => $request->commentaire,
+        'auteur_id'      => $request->user()->id,
+        'date_evenement' => now(),
+    ]);
+
+    return response()->json($colis->fresh());
+}
+
+public function mouvements(Colis $colis, Request $request)
+{
+    $user = $request->user();
+
+    //  un client ne peut consulter que ses propres colis
+    if ($user->role === 'client' && $colis->client_id !== $user->id) {
+        return response()->json(['message' => 'Accès non autorisé.'], 403);
+    }
+
+    $mouvements = $colis->mouvements()
+        ->with('auteur:id,nom,prenom')
+        ->orderBy('date_evenement', 'asc')
+        ->get();
+
+    return response()->json($mouvements);
+}
+
 public function destroy(Colis $colis, Request $request)
 {
     $user = $request->user();

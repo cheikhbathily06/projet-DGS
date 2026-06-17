@@ -23,4 +23,9 @@ Route::put('/colis/{colis}',  [ColisController::class, 'update']);
 Route::delete('/colis/{colis}', [ColisController::class, 'destroy']);
 
 Route::post('/colis/sans-compte', [ColisController::class, 'storeSansCompte']);
+
+Route::patch('/colis/{colis}/statut', [ColisController::class, 'updateStatut']);
+
+Route::get('/colis/{colis}/mouvements', [ColisController::class, 'mouvements']);
+
 });
