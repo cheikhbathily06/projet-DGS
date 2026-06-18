@@ -35,4 +35,13 @@ return [
         ],
     ],
 
+    'brevo' => [
+        'api_key' => env('BREVO_API_KEY'),
+    ],
+
+    'vonage' => [
+    'api_key' => env('VONAGE_API_KEY'),
+    'api_secret' => env('VONAGE_API_SECRET'),
+],
+
 ];

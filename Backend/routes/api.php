@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 // Routes publiques
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login',    [AuthController::class, 'login']);
+Route::get('/suivi/{codeSuivi}', [ColisController::class, 'suiviPublic']);
 
 // Routes protégées
 Route::middleware('auth:sanctum')->group(function () {
