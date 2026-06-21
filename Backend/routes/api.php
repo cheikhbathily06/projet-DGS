@@ -3,6 +3,8 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ColisController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\NotificationController;
+
 
 // Routes publiques
 Route::post('/auth/register', [AuthController::class, 'register']);
@@ -28,5 +30,9 @@ Route::post('/colis/sans-compte', [ColisController::class, 'storeSansCompte']);
 Route::patch('/colis/{colis}/statut', [ColisController::class, 'updateStatut']);
 
 Route::get('/colis/{colis}/mouvements', [ColisController::class, 'mouvements']);
+
+Route::get('/notifications', [NotificationController::class, 'index']);
+
+Route::get('/dashboard/client', [ColisController::class, 'dashboardClient']);
 
 });

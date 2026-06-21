@@ -326,4 +326,28 @@ class ColisController extends Controller
             'historique'  => $mouvements,
         ]);
     }
+
+    public function dashboardClient(Request $request)
+{
+    $user = $request->user();
+
+    $resume = Colis::where('client_id', $user->id)
+        ->selectRaw('statut, count(*) as total')
+        ->groupBy('statut')
+        ->pluck('total', 'statut');
+
+    $dernieresExpeditions = Colis::where('client_id', $user->id)
+        ->latest('cree_le')
+        ->take(5)
+        ->get(['id', 'code_suivi', 'destination', 'statut', 'cree_le']);
+
+    $totalColis = Colis::where('client_id', $user->id)->count();
+
+    return response()->json([
+        'total_colis'           => $totalColis,
+        'resume_par_statut'     => $resume,
+        'dernieres_expeditions' => $dernieresExpeditions,
+    ]);
+}
+
 }
