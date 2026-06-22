@@ -6,15 +6,28 @@ import Dashboard from './pages/Dashboard';
 import ColisListe from './pages/ColisListe';
 import ColisDetail from './pages/ColisDetail';
 import Notifications from './pages/Notifications';
+import AgentDashboard from './pages/AgentDashboard';
+import AgentColisListe from './pages/AgentColisListe';
+import AgentColisNouveau from './pages/AgentColisNouveau';
+import AgentColisDetail from './pages/AgentColisDetail';
 
-function PrivateRoute({ children }) {
+function PrivateRoute({ children, allowedRoles }) {
   const { user, loading } = useAuth();
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
   }
 
-  return user ? children : <Navigate to="/login" replace />;
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    const fallback = user.role === 'agent' || user.role === 'admin' ? '/agent/dashboard' : '/dashboard';
+    return <Navigate to={fallback} replace />;
+  }
+
+  return children;
 }
 
 function AppRoutes() {
@@ -22,10 +35,12 @@ function AppRoutes() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+
+      {/* Routes client */}
       <Route
         path="/dashboard"
         element={
-          <PrivateRoute>
+          <PrivateRoute allowedRoles={['client']}>
             <Dashboard />
           </PrivateRoute>
         }
@@ -33,7 +48,7 @@ function AppRoutes() {
       <Route
         path="/colis"
         element={
-          <PrivateRoute>
+          <PrivateRoute allowedRoles={['client']}>
             <ColisListe />
           </PrivateRoute>
         }
@@ -41,7 +56,7 @@ function AppRoutes() {
       <Route
         path="/colis/:id"
         element={
-          <PrivateRoute>
+          <PrivateRoute allowedRoles={['client']}>
             <ColisDetail />
           </PrivateRoute>
         }
@@ -49,12 +64,47 @@ function AppRoutes() {
       <Route
         path="/notifications"
         element={
-          <PrivateRoute>
+          <PrivateRoute allowedRoles={['client']}>
             <Notifications />
           </PrivateRoute>
         }
       />
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+
+      {/* Routes agent/admin */}
+      <Route
+        path="/agent/dashboard"
+        element={
+          <PrivateRoute allowedRoles={['agent', 'admin']}>
+            <AgentDashboard />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/agent/colis"
+        element={
+          <PrivateRoute allowedRoles={['agent', 'admin']}>
+            <AgentColisListe />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/agent/colis/nouveau"
+        element={
+          <PrivateRoute allowedRoles={['agent', 'admin']}>
+            <AgentColisNouveau />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/agent/colis/:id"
+        element={
+          <PrivateRoute allowedRoles={['agent', 'admin']}>
+            <AgentColisDetail />
+          </PrivateRoute>
+        }
+      />
+
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 }

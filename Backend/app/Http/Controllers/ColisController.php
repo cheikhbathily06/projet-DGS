@@ -34,6 +34,10 @@ class ColisController extends Controller
             $query->where('destination', $request->destination);
         }
 
+        if ($request->has('recherche')) {
+            $query->where('code_suivi', 'like', '%' . $request->recherche . '%');
+        }
+
         $colis = $query->latest('cree_le')->paginate(15);
 
         return response()->json($colis);
@@ -125,7 +129,6 @@ class ColisController extends Controller
 
     private function envoyerNotificationStatut(Colis $colis, string $statut): void
     {
-        // Client avec compte -> email Brevo
         if ($colis->client_id) {
             $client = $colis->client;
             $messages = [
@@ -161,7 +164,6 @@ class ColisController extends Controller
             return;
         }
 
-        // Client sans compte -> WhatsApp Vonage, uniquement à l'arrivée
         if ($colis->client_sans_compte_id && $statut === 'arrive') {
             $clientSansCompte = $colis->clientSansCompte;
             $urlSuiviPublic = url("/suivi/{$colis->code_suivi}");
@@ -258,7 +260,6 @@ class ColisController extends Controller
         $colis->qr_code_url = $resultat['secure_url'];
         $colis->save();
 
-        // Notification WhatsApp à l'enregistrement (roadmap J5)
         $urlSuiviPublic = url("/suivi/{$codeSuivi}");
 
         $message = "Bonjour {$clientSansCompte->nom}, votre colis a été enregistré avec succès chez DGS Africa.\n\n"
@@ -328,26 +329,25 @@ class ColisController extends Controller
     }
 
     public function dashboardClient(Request $request)
-{
-    $user = $request->user();
+    {
+        $user = $request->user();
 
-    $resume = Colis::where('client_id', $user->id)
-        ->selectRaw('statut, count(*) as total')
-        ->groupBy('statut')
-        ->pluck('total', 'statut');
+        $resume = Colis::where('client_id', $user->id)
+            ->selectRaw('statut, count(*) as total')
+            ->groupBy('statut')
+            ->pluck('total', 'statut');
 
-    $dernieresExpeditions = Colis::where('client_id', $user->id)
-        ->latest('cree_le')
-        ->take(5)
-        ->get(['id', 'code_suivi', 'destination', 'statut', 'cree_le']);
+        $dernieresExpeditions = Colis::where('client_id', $user->id)
+            ->latest('cree_le')
+            ->take(5)
+            ->get(['id', 'code_suivi', 'destination', 'statut', 'cree_le']);
 
-    $totalColis = Colis::where('client_id', $user->id)->count();
+        $totalColis = Colis::where('client_id', $user->id)->count();
 
-    return response()->json([
-        'total_colis'           => $totalColis,
-        'resume_par_statut'     => $resume,
-        'dernieres_expeditions' => $dernieresExpeditions,
-    ]);
-}
-
+        return response()->json([
+            'total_colis'           => $totalColis,
+            'resume_par_statut'     => $resume,
+            'dernieres_expeditions' => $dernieresExpeditions,
+        ]);
+    }
 }

@@ -57,7 +57,7 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950 px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-950 via-slate-950 to-slate-950 px-4 py-12">
       <div className="max-w-4xl w-full bg-white rounded-2xl overflow-hidden shadow-2xl flex flex-col lg:flex-row">
         {/* Colonne gauche - visuel */}
         <div className="lg:w-2/5 bg-gradient-to-br from-blue-950 to-slate-950 p-10 text-white flex flex-col justify-between">
@@ -70,7 +70,7 @@ export default function Register() {
               La logistique pan-africaine simplifiée.
             </h2>
             <p className="text-slate-300 text-sm mt-3">
-              Rejoignez le réseau leader pour la gestion et le suivi de vos colis à travers le continent.
+              Rejoignez le réseau leader pour la gestion et le suivi de vos colis à travers le monde.
             </p>
           </div>
           <div className="space-y-3 text-sm">
@@ -81,7 +81,7 @@ export default function Register() {
               <span>🛡️</span> Sécurité garantie
             </div>
             <div className="flex items-center gap-2">
-              <span>🌍</span> Réseau continental
+              
             </div>
           </div>
         </div>
@@ -108,7 +108,7 @@ export default function Register() {
                   required
                   value={form.prenom}
                   onChange={handleChange}
-                  placeholder="Ex: Abdou"
+                  placeholder="Ex: Cheikh Amala"
                   className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-900"
                 />
               </div>
@@ -119,7 +119,7 @@ export default function Register() {
                   required
                   value={form.nom}
                   onChange={handleChange}
-                  placeholder="Ex: Camara"
+                  placeholder="Ex: Bathily"
                   className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-900"
                 />
               </div>

@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ColisController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ClientController;
 
 
 // Routes publiques
@@ -34,5 +35,7 @@ Route::get('/colis/{colis}/mouvements', [ColisController::class, 'mouvements']);
 Route::get('/notifications', [NotificationController::class, 'index']);
 
 Route::get('/dashboard/client', [ColisController::class, 'dashboardClient']);
+
+Route::get('/clients/recherche', [ClientController::class, 'recherche']);
 
 });

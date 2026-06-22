@@ -3,6 +3,18 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import apiFetch from '../api/client';
 
+const NAV_CLIENT = [
+  { label: 'Tableau de bord', path: '/dashboard' },
+  { label: 'Colis', path: '/colis' },
+  { label: 'Notifications', path: '/notifications' },
+];
+
+const NAV_AGENT = [
+  { label: 'Tableau de bord', path: '/agent/dashboard' },
+  { label: 'Colis', path: '/agent/colis' },
+  { label: 'Nouveau colis', path: '/agent/colis/nouveau' },
+];
+
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
   const location = useLocation();
@@ -10,13 +22,12 @@ export default function Layout({ children }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [nonLues, setNonLues] = useState(0);
 
-  const navItems = [
-    { label: 'Tableau de bord', path: '/dashboard' },
-    { label: 'Colis', path: '/colis' },
-    { label: 'Notifications', path: '/notifications' },
-  ];
+  const estAgent = user?.role === 'agent' || user?.role === 'admin';
+  const navItems = estAgent ? NAV_AGENT : NAV_CLIENT;
 
   useEffect(() => {
+    if (estAgent) return; // pas de notifications client pour l'agent pour l'instant
+
     async function checkNotifications() {
       try {
         const data = await apiFetch('/notifications');
@@ -34,7 +45,7 @@ export default function Layout({ children }) {
       }
     }
     checkNotifications();
-  }, [location.pathname]);
+  }, [location.pathname, estAgent]);
 
   useEffect(() => {
     if (location.pathname === '/notifications') {
@@ -68,7 +79,7 @@ export default function Layout({ children }) {
           <div className="w-8 h-8 rounded-full bg-blue-900 text-white flex items-center justify-center text-xs font-semibold">
             {initiales}
           </div>
-          {nonLues > 0 && (
+          {!estAgent && nonLues > 0 && (
             <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1">
               {nonLues}
             </span>
@@ -82,7 +93,9 @@ export default function Layout({ children }) {
       >
         <div className="hidden lg:block px-6 py-6 border-b border-slate-800">
           <h1 className="text-lg font-bold text-orange-500">DGS Track</h1>
-          <p className="text-xs text-slate-400">DGS Africa Logistics</p>
+          <p className="text-xs text-slate-400">
+            {estAgent ? 'Espace Agent' : 'DGS Africa Logistics'}
+          </p>
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1">
@@ -100,7 +113,7 @@ export default function Layout({ children }) {
                 }`}
               >
                 <span>{item.label}</span>
-                {item.path === '/notifications' && nonLues > 0 && (
+                {!estAgent && item.path === '/notifications' && nonLues > 0 && (
                   <span className="bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
                     {nonLues}
                   </span>
