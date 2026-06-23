@@ -350,4 +350,23 @@ class ColisController extends Controller
             'dernieres_expeditions' => $dernieresExpeditions,
         ]);
     }
+
+    public function dashboardAgent(Request $request)
+{
+    $resume = Colis::selectRaw('statut, count(*) as total')
+        ->groupBy('statut')
+        ->pluck('total', 'statut');
+
+    $totalColis = Colis::count();
+    $derniersMovements = \App\Models\MouvementColis::with('colis:id,code_suivi,destination')
+        ->orderBy('date_evenement', 'desc')
+        ->take(5)
+        ->get();
+
+    return response()->json([
+        'total_colis'       => $totalColis,
+        'resume_par_statut' => $resume,
+        'derniers_mouvements' => $derniersMovements,
+    ]);
+}
 }

@@ -13,43 +13,33 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, HasApiTokens;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
-    'name',
-    'nom',
-    'prenom',
-    'email',
-    'telephone',
-    'mot_de_passe',
-    'role',
-    'actif',
-    'password',
-];
+        'name',
+        'nom',
+        'prenom',
+        'email',
+        'telephone',
+        'mot_de_passe',
+        'role',
+        'actif',
+        'password',
+    ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function colisCreees()
+    {
+        return $this->hasMany(\App\Models\Colis::class, 'cree_par');
     }
 }

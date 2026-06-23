@@ -15,6 +15,11 @@ const NAV_AGENT = [
   { label: 'Nouveau colis', path: '/agent/colis/nouveau' },
 ];
 
+const NAV_ADMIN = [
+  { label: 'Tableau de bord', path: '/admin/dashboard' },
+  { label: 'Utilisateurs', path: '/admin/users' },
+];
+
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
   const location = useLocation();
@@ -22,11 +27,12 @@ export default function Layout({ children }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [nonLues, setNonLues] = useState(0);
 
-  const estAgent = user?.role === 'agent' || user?.role === 'admin';
-  const navItems = estAgent ? NAV_AGENT : NAV_CLIENT;
+  const estAdmin = user?.role === 'admin';
+  const estAgent = user?.role === 'agent';
+  const navItems = estAdmin ? NAV_ADMIN : estAgent ? NAV_AGENT : NAV_CLIENT;
 
   useEffect(() => {
-    if (estAgent) return; // pas de notifications client pour l'agent pour l'instant
+    if (estAgent || estAdmin) return;
 
     async function checkNotifications() {
       try {
@@ -45,7 +51,9 @@ export default function Layout({ children }) {
       }
     }
     checkNotifications();
-  }, [location.pathname, estAgent]);
+    const interval = setInterval(checkNotifications, 60000);
+    return () => clearInterval(interval);
+  }, [estAgent, estAdmin]);
 
   useEffect(() => {
     if (location.pathname === '/notifications') {
@@ -79,7 +87,7 @@ export default function Layout({ children }) {
           <div className="w-8 h-8 rounded-full bg-blue-900 text-white flex items-center justify-center text-xs font-semibold">
             {initiales}
           </div>
-          {!estAgent && nonLues > 0 && (
+          {!estAgent && !estAdmin && nonLues > 0 && (
             <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1">
               {nonLues}
             </span>
@@ -87,14 +95,14 @@ export default function Layout({ children }) {
         </div>
       </header>
 
-      {/* Sidebar - mobile (drawer) + desktop (fixe) */}
+      {/* Sidebar */}
       <aside
         className={`relative z-20 lg:z-10 ${menuOpen ? 'block' : 'hidden'} lg:block w-full lg:w-64 bg-slate-900/90 backdrop-blur lg:bg-slate-900/40 border-r border-slate-800 flex flex-col`}
       >
         <div className="hidden lg:block px-6 py-6 border-b border-slate-800">
           <h1 className="text-lg font-bold text-orange-500">DGS Track</h1>
           <p className="text-xs text-slate-400">
-            {estAgent ? 'Espace Agent' : 'DGS Africa Logistics'}
+            {estAdmin ? 'Espace Admin' : estAgent ? 'Espace Agent' : 'DGS Africa Logistics'}
           </p>
         </div>
 
@@ -113,7 +121,7 @@ export default function Layout({ children }) {
                 }`}
               >
                 <span>{item.label}</span>
-                {!estAgent && item.path === '/notifications' && nonLues > 0 && (
+                {!estAgent && !estAdmin && item.path === '/notifications' && nonLues > 0 && (
                   <span className="bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
                     {nonLues}
                   </span>

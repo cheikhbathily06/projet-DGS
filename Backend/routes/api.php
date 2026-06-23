@@ -5,6 +5,7 @@ use App\Http\Controllers\ColisController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\AdminController;
 
 
 // Routes publiques
@@ -37,5 +38,18 @@ Route::get('/notifications', [NotificationController::class, 'index']);
 Route::get('/dashboard/client', [ColisController::class, 'dashboardClient']);
 
 Route::get('/clients/recherche', [ClientController::class, 'recherche']);
+
+Route::get('/dashboard/agent', [ColisController::class, 'dashboardAgent']);
+
+
+
+Route::middleware('role:admin')->group(function () {
+    Route::get('/admin/stats', [AdminController::class, 'stats']);
+    Route::get('/admin/users', [AdminController::class, 'index']);
+    Route::post('/admin/users', [AdminController::class, 'store']);
+    Route::get('/admin/users/{user}', [AdminController::class, 'show']);
+    Route::put('/admin/users/{user}', [AdminController::class, 'update']);
+    Route::delete('/admin/users/{user}', [AdminController::class, 'destroy']);
+});
 
 });

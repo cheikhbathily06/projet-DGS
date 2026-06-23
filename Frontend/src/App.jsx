@@ -10,6 +10,8 @@ import AgentDashboard from './pages/AgentDashboard';
 import AgentColisListe from './pages/AgentColisListe';
 import AgentColisNouveau from './pages/AgentColisNouveau';
 import AgentColisDetail from './pages/AgentColisDetail';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminUsers from './pages/AdminUsers';
 
 function PrivateRoute({ children, allowedRoles }) {
   const { user, loading } = useAuth();
@@ -23,8 +25,9 @@ function PrivateRoute({ children, allowedRoles }) {
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    const fallback = user.role === 'agent' || user.role === 'admin' ? '/agent/dashboard' : '/dashboard';
-    return <Navigate to={fallback} replace />;
+    if (user.role === 'admin') return <Navigate to="/admin/dashboard" replace />;
+    if (user.role === 'agent') return <Navigate to="/agent/dashboard" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children;
@@ -37,72 +40,20 @@ function AppRoutes() {
       <Route path="/register" element={<Register />} />
 
       {/* Routes client */}
-      <Route
-        path="/dashboard"
-        element={
-          <PrivateRoute allowedRoles={['client']}>
-            <Dashboard />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/colis"
-        element={
-          <PrivateRoute allowedRoles={['client']}>
-            <ColisListe />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/colis/:id"
-        element={
-          <PrivateRoute allowedRoles={['client']}>
-            <ColisDetail />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/notifications"
-        element={
-          <PrivateRoute allowedRoles={['client']}>
-            <Notifications />
-          </PrivateRoute>
-        }
-      />
+      <Route path="/dashboard" element={<PrivateRoute allowedRoles={['client']}><Dashboard /></PrivateRoute>} />
+      <Route path="/colis" element={<PrivateRoute allowedRoles={['client']}><ColisListe /></PrivateRoute>} />
+      <Route path="/colis/:id" element={<PrivateRoute allowedRoles={['client']}><ColisDetail /></PrivateRoute>} />
+      <Route path="/notifications" element={<PrivateRoute allowedRoles={['client']}><Notifications /></PrivateRoute>} />
 
-      {/* Routes agent/admin */}
-      <Route
-        path="/agent/dashboard"
-        element={
-          <PrivateRoute allowedRoles={['agent', 'admin']}>
-            <AgentDashboard />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/agent/colis"
-        element={
-          <PrivateRoute allowedRoles={['agent', 'admin']}>
-            <AgentColisListe />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/agent/colis/nouveau"
-        element={
-          <PrivateRoute allowedRoles={['agent', 'admin']}>
-            <AgentColisNouveau />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/agent/colis/:id"
-        element={
-          <PrivateRoute allowedRoles={['agent', 'admin']}>
-            <AgentColisDetail />
-          </PrivateRoute>
-        }
-      />
+      {/* Routes agent uniquement */}
+      <Route path="/agent/dashboard" element={<PrivateRoute allowedRoles={['agent']}><AgentDashboard /></PrivateRoute>} />
+      <Route path="/agent/colis" element={<PrivateRoute allowedRoles={['agent']}><AgentColisListe /></PrivateRoute>} />
+      <Route path="/agent/colis/nouveau" element={<PrivateRoute allowedRoles={['agent']}><AgentColisNouveau /></PrivateRoute>} />
+      <Route path="/agent/colis/:id" element={<PrivateRoute allowedRoles={['agent']}><AgentColisDetail /></PrivateRoute>} />
+
+      {/* Routes admin uniquement */}
+      <Route path="/admin/dashboard" element={<PrivateRoute allowedRoles={['admin']}><AdminDashboard /></PrivateRoute>} />
+      <Route path="/admin/users" element={<PrivateRoute allowedRoles={['admin']}><AdminUsers /></PrivateRoute>} />
 
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>

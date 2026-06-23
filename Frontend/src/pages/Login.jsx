@@ -17,7 +17,9 @@ export default function Login() {
 
     try {
       const user = await login(email, password);
-      if (user.role === 'agent' || user.role === 'admin') {
+      if (user.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else if (user.role === 'agent') {
         navigate('/agent/dashboard');
       } else {
         navigate('/dashboard');
