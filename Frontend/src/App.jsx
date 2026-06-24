@@ -12,6 +12,9 @@ import AgentColisNouveau from './pages/AgentColisNouveau';
 import AgentColisDetail from './pages/AgentColisDetail';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminUsers from './pages/AdminUsers';
+import ForgotPassword from './pages/ForgotPassword';
+import SuiviPublic from './pages/SuiviPublic';
+import ResetPassword from './pages/ResetPassword';
 
 function PrivateRoute({ children, allowedRoles }) {
   const { user, loading } = useAuth();
@@ -38,6 +41,9 @@ function AppRoutes() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/suivi/:codeSuivi" element={<SuiviPublic />} />
+<Route path="/reset-password" element={<ResetPassword />} />
 
       {/* Routes client */}
       <Route path="/dashboard" element={<PrivateRoute allowedRoles={['client']}><Dashboard /></PrivateRoute>} />

@@ -6,12 +6,15 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\AdminController;
-
+use App\Http\Controllers\PasswordResetController;
 
 // Routes publiques
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login',    [AuthController::class, 'login']);
 Route::get('/suivi/{codeSuivi}', [ColisController::class, 'suiviPublic']);
+Route::post('/auth/forgot-password', [PasswordResetController::class, 'forgotPassword']);
+Route::post('/auth/reset-password', [PasswordResetController::class, 'resetPassword']);
+
 
 // Routes protégées
 Route::middleware('auth:sanctum')->group(function () {
@@ -50,6 +53,10 @@ Route::middleware('role:admin')->group(function () {
     Route::get('/admin/users/{user}', [AdminController::class, 'show']);
     Route::put('/admin/users/{user}', [AdminController::class, 'update']);
     Route::delete('/admin/users/{user}', [AdminController::class, 'destroy']);
+
+    
+
+
 });
 
 });

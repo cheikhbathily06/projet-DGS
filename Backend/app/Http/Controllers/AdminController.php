@@ -97,28 +97,63 @@ class AdminController extends Controller
         return response()->json(['message' => 'Utilisateur supprimé avec succès.']);
     }
 
-    public function stats()
-    {
-        $totalColis = \App\Models\Colis::count();
-        $resumeStatuts = \App\Models\Colis::selectRaw('statut, count(*) as total')
-            ->groupBy('statut')
-            ->pluck('total', 'statut');
+   public function stats()
+{
+    $totalColis = \App\Models\Colis::count();
+    $resumeStatuts = \App\Models\Colis::selectRaw('statut, count(*) as total')
+        ->groupBy('statut')
+        ->pluck('total', 'statut');
 
-        $totalAgents = User::where('role', 'agent')->count();
-        $totalClients = User::where('role', 'client')->count();
+    $totalAgents = User::where('role', 'agent')->count();
+    $totalClients = User::where('role', 'client')->count();
 
-        $performanceAgents = User::where('role', 'agent')
-            ->withCount('colisCreees as colis_crees')
-            ->orderBy('colis_crees', 'desc')
-            ->take(5)
-            ->get(['id', 'nom', 'prenom']);
+    $performanceAgents = User::where('role', 'agent')
+        ->withCount('colisCreees as colis_crees')
+        ->orderBy('colis_crees', 'desc')
+        ->take(5)
+        ->get(['id', 'nom', 'prenom']);
 
-        return response()->json([
-            'total_colis'        => $totalColis,
-            'resume_statuts'     => $resumeStatuts,
-            'total_agents'       => $totalAgents,
-            'total_clients'      => $totalClients,
-            'performance_agents' => $performanceAgents,
-        ]);
-    }
+    // Délai moyen de livraison (en jours)
+    $delaiMoyen = \DB::select("
+        SELECT AVG(DATEDIFF(m2.date_evenement, m1.date_evenement)) as delai_moyen
+        FROM mouvement_colis m1
+        JOIN mouvement_colis m2 ON m1.colis_id = m2.colis_id
+        WHERE m1.ancien_statut = 'recu' AND m1.nouveau_statut = 'expedie'
+        AND m2.nouveau_statut = 'livre'
+    ");
+    $delaiMoyenJours = round($delaiMoyen[0]->delai_moyen ?? 0, 1);
+
+    // Taux de succès par destination (% de colis livrés)
+    $tauxParDestination = \App\Models\Colis::selectRaw('
+        destination,
+        COUNT(*) as total,
+        SUM(CASE WHEN statut = "livre" THEN 1 ELSE 0 END) as livres,
+        ROUND(SUM(CASE WHEN statut = "livre" THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 1) as taux
+    ')
+    ->groupBy('destination')
+    ->orderBy('total', 'desc')
+    ->take(5)
+    ->get();
+
+    // Évolution mensuelle des volumes (6 derniers mois)
+    $evolutionMensuelle = \App\Models\Colis::selectRaw('
+        DATE_FORMAT(cree_le, "%Y-%m") as mois,
+        COUNT(*) as total
+    ')
+    ->where('cree_le', '>=', now()->subMonths(6))
+    ->groupBy('mois')
+    ->orderBy('mois', 'asc')
+    ->get();
+
+    return response()->json([
+        'total_colis'          => $totalColis,
+        'resume_statuts'       => $resumeStatuts,
+        'total_agents'         => $totalAgents,
+        'total_clients'        => $totalClients,
+        'performance_agents'   => $performanceAgents,
+        'delai_moyen_jours'    => $delaiMoyenJours,
+        'taux_par_destination' => $tauxParDestination,
+        'evolution_mensuelle'  => $evolutionMensuelle,
+    ]);
+}
 }
