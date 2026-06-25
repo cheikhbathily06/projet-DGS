@@ -5,7 +5,7 @@ import apiFetch from '../api/client';
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
-  LineChart, Line,
+  LineChart, Line, AreaChart, Area,
 } from 'recharts';
 
 const STATUT_LABELS = {
@@ -25,6 +25,12 @@ const STATUT_COLORS_HEX = {
   disponible: '#06b6d4',
   livre: '#22c55e',
 };
+
+const TAUX_AED_PAR_FCFA = 0.0062;
+
+function formatFCFA(value) {
+  return new Intl.NumberFormat('fr-FR').format(Math.round(value)) + ' FCFA';
+}
 
 export default function AdminDashboard() {
   const [data, setData] = useState(null);
@@ -66,6 +72,17 @@ export default function AdminDashboard() {
     total: m.total,
   }));
 
+  const caMensuelData = (data.ca_mensuel || []).map((m) => ({
+    mois: m.mois,
+    ca: Math.round(m.total),
+    caAED: Math.round(m.total * TAUX_AED_PAR_FCFA),
+  }));
+
+  const caParAgentData = (data.ca_par_agent || []).map((agent) => ({
+    name: `${agent.prenom} ${agent.nom[0]}.`,
+    ca: Math.round(agent.ca_genere || 0),
+  }));
+
   const tauxData = (data.taux_par_destination || []).map((d) => ({
     destination: d.destination.length > 15 ? d.destination.substring(0, 15) + '...' : d.destination,
     taux: parseFloat(d.taux),
@@ -76,6 +93,8 @@ export default function AdminDashboard() {
   const tauxLivraison = data.resume_statuts.livre && data.total_colis
     ? Math.round((data.resume_statuts.livre / data.total_colis) * 100)
     : 0;
+
+  const caAEDTotal = Math.round((data.ca_total || 0) * TAUX_AED_PAR_FCFA);
 
   return (
     <Layout>
@@ -97,6 +116,28 @@ export default function AdminDashboard() {
         ))}
       </div>
 
+      {/* KPI Revenus */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+        <div className="bg-white rounded-xl p-5 border-l-4 border-emerald-500">
+          <p className="text-sm font-medium text-slate-500">Chiffre d'affaires total</p>
+          <p className="text-2xl sm:text-3xl font-bold text-slate-900 mt-2">
+            {formatFCFA(data.ca_total || 0)}
+          </p>
+          <p className="text-sm text-orange-600 font-medium mt-1">
+            ≈ {caAEDTotal.toLocaleString('fr-FR')} AED
+          </p>
+        </div>
+        <div className="bg-white rounded-xl p-5 border-l-4 border-teal-500">
+          <p className="text-sm font-medium text-slate-500">CA moyen par colis</p>
+          <p className="text-2xl sm:text-3xl font-bold text-slate-900 mt-2">
+            {data.total_colis > 0 ? formatFCFA((data.ca_total || 0) / data.total_colis) : '0 FCFA'}
+          </p>
+          <p className="text-sm text-orange-600 font-medium mt-1">
+            ≈ {data.total_colis > 0 ? Math.round(((data.ca_total || 0) / data.total_colis) * TAUX_AED_PAR_FCFA).toLocaleString('fr-FR') : 0} AED
+          </p>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
         {/* Camembert statuts */}
         <div className="bg-white rounded-xl p-6">
@@ -107,15 +148,7 @@ export default function AdminDashboard() {
             <div className="flex flex-col sm:flex-row items-center gap-6">
               <ResponsiveContainer width="100%" height={220}>
                 <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={90}
-                    paddingAngle={3}
-                    dataKey="value"
-                  >
+                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={3} dataKey="value">
                     {pieData.map((entry, index) => (
                       <Cell key={index} fill={entry.color} />
                     ))}
@@ -136,13 +169,11 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        {/* Performance agents */}
+        {/* Performance agents - colis */}
         <div className="bg-white rounded-xl p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-bold text-slate-900">Performance des agents</h3>
-            <Link to="/admin/users" className="text-orange-600 text-sm font-medium hover:underline">
-              Gérer →
-            </Link>
+            <Link to="/admin/users" className="text-orange-600 text-sm font-medium hover:underline">Gérer →</Link>
           </div>
           {barData.length === 0 ? (
             <p className="text-slate-400 text-center py-12">Aucun agent enregistré.</p>
@@ -152,17 +183,80 @@ export default function AdminDashboard() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                 <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#64748b' }} />
                 <YAxis tick={{ fontSize: 12, fill: '#64748b' }} allowDecimals={false} />
-                <Tooltip
-                  formatter={(value) => [value + ' colis', 'Colis créés']}
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
-                />
+                <Tooltip formatter={(value) => [value + ' colis', 'Colis créés']}
+                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }} />
                 <Bar dataKey="colis" fill="#f97316" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}
         </div>
 
-        {/* Évolution mensuelle */}
+        {/* CA mensuel */}
+        <div className="bg-white rounded-xl p-6">
+          <h3 className="text-lg font-bold text-slate-900 mb-6">Chiffre d'affaires mensuel (FCFA)</h3>
+          {caMensuelData.length === 0 ? (
+            <p className="text-slate-400 text-center py-12">Pas encore de données sur 6 mois.</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={220}>
+              <AreaChart data={caMensuelData} margin={{ top: 0, right: 10, left: 10, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="caGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <XAxis dataKey="mois" tick={{ fontSize: 11, fill: '#64748b' }} />
+                <YAxis tick={{ fontSize: 10, fill: '#64748b' }}
+                  tickFormatter={(v) => v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v} />
+                <Tooltip
+                  formatter={(value) => [formatFCFA(value) + ` (≈ ${Math.round(value * TAUX_AED_PAR_FCFA).toLocaleString()} AED)`, 'CA']}
+                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
+                />
+                <Area type="monotone" dataKey="ca" stroke="#22c55e" strokeWidth={2} fill="url(#caGradient)"
+                  dot={{ fill: '#22c55e', r: 4 }} activeDot={{ r: 6 }} />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+
+        {/* CA par agent */}
+        <div className="bg-white rounded-xl p-6">
+          <h3 className="text-lg font-bold text-slate-900 mb-6">Revenus générés par agent</h3>
+          {caParAgentData.length === 0 ? (
+            <p className="text-slate-400 text-center py-12">Aucun agent enregistré.</p>
+          ) : (
+            <div className="space-y-4">
+              {caParAgentData.map((agent, index) => {
+                const maxCA = caParAgentData[0]?.ca || 1;
+                const pourcentage = Math.round((agent.ca / maxCA) * 100);
+                return (
+                  <div key={index}>
+                    <div className="flex items-center justify-between text-sm mb-1">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-blue-950 text-white flex items-center justify-center text-xs font-bold">
+                          {index + 1}
+                        </div>
+                        <span className="text-slate-700 font-medium">{agent.name}</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-semibold text-slate-900 text-xs">{formatFCFA(agent.ca)}</span>
+                        <span className="text-orange-600 text-xs ml-1">
+                          (≈ {Math.round(agent.ca * TAUX_AED_PAR_FCFA).toLocaleString()} AED)
+                        </span>
+                      </div>
+                    </div>
+                    <div className="w-full bg-slate-100 rounded-full h-2">
+                      <div className="bg-emerald-500 h-2 rounded-full transition-all" style={{ width: `${pourcentage}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Évolution mensuelle volumes */}
         <div className="bg-white rounded-xl p-6">
           <h3 className="text-lg font-bold text-slate-900 mb-6">Évolution mensuelle des volumes</h3>
           {lineData.length === 0 ? (
@@ -173,18 +267,10 @@ export default function AdminDashboard() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                 <XAxis dataKey="mois" tick={{ fontSize: 11, fill: '#64748b' }} />
                 <YAxis tick={{ fontSize: 11, fill: '#64748b' }} allowDecimals={false} />
-                <Tooltip
-                  formatter={(value) => [value + ' colis', 'Volume']}
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="total"
-                  stroke="#f97316"
-                  strokeWidth={2}
-                  dot={{ fill: '#f97316', r: 4 }}
-                  activeDot={{ r: 6 }}
-                />
+                <Tooltip formatter={(value) => [value + ' colis', 'Volume']}
+                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }} />
+                <Line type="monotone" dataKey="total" stroke="#f97316" strokeWidth={2}
+                  dot={{ fill: '#f97316', r: 4 }} activeDot={{ r: 6 }} />
               </LineChart>
             </ResponsiveContainer>
           )}
@@ -202,17 +288,12 @@ export default function AdminDashboard() {
                   <div className="flex items-center justify-between text-sm mb-1">
                     <span className="text-slate-700 font-medium truncate">{d.destination}</span>
                     <span className="text-slate-500 text-xs ml-2 flex-shrink-0">
-                      {d.livres}/{d.total} colis · <span className="font-semibold text-slate-800">{d.taux}%</span>
+                      {d.livres}/{d.total} · <span className="font-semibold text-slate-800">{d.taux}%</span>
                     </span>
                   </div>
                   <div className="w-full bg-slate-100 rounded-full h-2">
-                    <div
-                      className="h-2 rounded-full transition-all"
-                      style={{
-                        width: `${d.taux}%`,
-                        background: d.taux >= 80 ? '#22c55e' : d.taux >= 50 ? '#f97316' : '#ef4444'
-                      }}
-                    />
+                    <div className="h-2 rounded-full transition-all"
+                      style={{ width: `${d.taux}%`, background: d.taux >= 80 ? '#22c55e' : d.taux >= 50 ? '#f97316' : '#ef4444' }} />
                   </div>
                 </div>
               ))}
@@ -229,10 +310,8 @@ export default function AdminDashboard() {
             {data.total_agents} agents · {data.total_clients} clients enregistrés
           </p>
         </div>
-        <Link
-          to="/admin/users"
-          className="bg-blue-950 text-white text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-blue-900 transition whitespace-nowrap"
-        >
+        <Link to="/admin/users"
+          className="bg-blue-950 text-white text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-blue-900 transition whitespace-nowrap">
           Gérer les utilisateurs
         </Link>
       </div>
