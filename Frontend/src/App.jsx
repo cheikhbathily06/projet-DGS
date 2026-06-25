@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -10,6 +10,7 @@ import AgentDashboard from './pages/AgentDashboard';
 import AgentColisListe from './pages/AgentColisListe';
 import AgentColisNouveau from './pages/AgentColisNouveau';
 import AgentColisDetail from './pages/AgentColisDetail';
+import AgentScanner from './pages/AgentScanner';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminUsers from './pages/AdminUsers';
 import ForgotPassword from './pages/ForgotPassword';
@@ -42,8 +43,8 @@ function AppRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/suivi/:codeSuivi" element={<SuiviPublic />} />
-<Route path="/reset-password" element={<ResetPassword />} />
 
       {/* Routes client */}
       <Route path="/dashboard" element={<PrivateRoute allowedRoles={['client']}><Dashboard /></PrivateRoute>} />
@@ -56,6 +57,7 @@ function AppRoutes() {
       <Route path="/agent/colis" element={<PrivateRoute allowedRoles={['agent']}><AgentColisListe /></PrivateRoute>} />
       <Route path="/agent/colis/nouveau" element={<PrivateRoute allowedRoles={['agent']}><AgentColisNouveau /></PrivateRoute>} />
       <Route path="/agent/colis/:id" element={<PrivateRoute allowedRoles={['agent']}><AgentColisDetail /></PrivateRoute>} />
+      <Route path="/agent/scanner" element={<PrivateRoute allowedRoles={['agent']}><AgentScanner /></PrivateRoute>} />
 
       {/* Routes admin uniquement */}
       <Route path="/admin/dashboard" element={<PrivateRoute allowedRoles={['admin']}><AdminDashboard /></PrivateRoute>} />
@@ -68,10 +70,10 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <AuthProvider>
         <AppRoutes />
       </AuthProvider>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
