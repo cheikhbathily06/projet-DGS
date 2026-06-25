@@ -12,22 +12,24 @@ class Colis extends Model
     protected $table = 'colis';
     public $timestamps = false;
 
-    protected $fillable = [
-        'code_suivi',
-        'qr_code_url',
-        'client_id',
-        'client_sans_compte_id',
-        'expediteur',
-        'origine',
-        'destination',
-        'poids_kg',
-        'volume_m3',
-        'cout_transport',
-        'statut',
-        'cree_par',
-        'cree_le',
-        'maj_le',
-    ];
+   protected $fillable = [
+    'code_suivi',
+    'qr_code_url',
+    'photo_url',
+    'client_id',
+    'client_sans_compte_id',
+    'expediteur',
+    'nom_destinataire',
+    'telephone_destinataire',
+    'origine',
+    'destination',
+    'poids_kg',
+    'cout_transport',
+    'statut',
+    'cree_par',
+    'cree_le',
+    'maj_le',
+];
 
     // Transitions autorisées dans les regle de gstion suivant l'ordre
     const TRANSITIONS = [

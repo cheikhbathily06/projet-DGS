@@ -49,9 +49,9 @@ class ColisController extends Controller
 
         $colis = Colis::create([
             ...$request->validated(),
-            'code_suivi' => $codeSuivi,
+            'code_suivi'  => $codeSuivi,
             'qr_code_url' => '',
-            'cree_par' => $request->user()->id,
+            'cree_par'    => $request->user()->id,
         ]);
 
         $urlSuivi = env('FRONTEND_URL', 'http://localhost:5173') . "/suivi/{$codeSuivi}";
@@ -99,7 +99,7 @@ class ColisController extends Controller
     public function updateStatut(UpdateStatutColisRequest $request, Colis $colis)
     {
         $nouveauStatut = $request->statut;
-        $ancienStatut = $colis->statut;
+        $ancienStatut  = $colis->statut;
 
         if (! $colis->transitionAutorisee($nouveauStatut)) {
             return response()->json([
@@ -130,7 +130,7 @@ class ColisController extends Controller
     private function envoyerNotificationStatut(Colis $colis, string $statut): void
     {
         if ($colis->client_id) {
-            $client = $colis->client;
+            $client   = $colis->client;
             $messages = [
                 'expedie'    => "Votre colis {$colis->code_suivi} a été expédié.",
                 'arrive'     => "Votre colis {$colis->code_suivi} est arrivé à destination.",
@@ -158,7 +158,7 @@ class ColisController extends Controller
             );
 
             $notification->statut_envoi = $succes ? 'envoye' : 'echec';
-            $notification->envoye_le = $succes ? now() : null;
+            $notification->envoye_le    = $succes ? now() : null;
             $notification->save();
 
             return;
@@ -166,7 +166,7 @@ class ColisController extends Controller
 
         if ($colis->client_sans_compte_id && $statut === 'arrive') {
             $clientSansCompte = $colis->clientSansCompte;
-            $urlSuiviPublic = env('FRONTEND_URL', 'http://localhost:5173') . "/suivi/{$colis->code_suivi}";
+            $urlSuiviPublic   = env('FRONTEND_URL', 'http://localhost:5173') . "/suivi/{$colis->code_suivi}";
 
             $message = "Bonjour {$clientSansCompte->nom}, votre colis {$colis->code_suivi} est arrivé à destination.\n\n"
                 . "Détails du colis : {$urlSuiviPublic}\n\n"
@@ -185,7 +185,7 @@ class ColisController extends Controller
             $succes = $vonageService->envoyerWhatsApp($clientSansCompte->telephone_whatsapp, $message);
 
             $notification->statut_envoi = $succes ? 'envoye' : 'echec';
-            $notification->envoye_le = $succes ? now() : null;
+            $notification->envoye_le    = $succes ? now() : null;
             $notification->save();
         }
     }
@@ -231,25 +231,27 @@ class ColisController extends Controller
 
         $colis = Colis::create([
             'expediteur'             => $request->expediteur,
+            'nom_destinataire'       => $request->nom_destinataire,
+            'telephone_destinataire' => $request->telephone_destinataire,
             'origine'                => $request->origine,
             'destination'            => $request->destination,
             'poids_kg'               => $request->poids_kg,
-            'volume_m3'              => $request->volume_m3,
             'cout_transport'         => $request->cout_transport,
+            'photo_url'              => $request->photo_url,
             'client_sans_compte_id'  => $clientSansCompte->id,
             'code_suivi'             => $codeSuivi,
             'qr_code_url'            => '',
             'cree_par'               => $request->user()->id,
         ]);
 
-        $urlSuivi = env('FRONTEND_URL', 'http://localhost:5173') . "/suivi/{$codeSuivi}";
+        $urlSuivi  = env('FRONTEND_URL', 'http://localhost:5173') . "/suivi/{$codeSuivi}";
         $qrCodeSvg = QrCode::format('svg')->size(300)->generate($urlSuivi);
 
         $cheminTemp = storage_path("app/temp_qr_{$codeSuivi}.svg");
         file_put_contents($cheminTemp, $qrCodeSvg);
 
         $cloudinary = new \Cloudinary\Cloudinary();
-        $resultat = $cloudinary->uploadApi()->upload($cheminTemp, [
+        $resultat   = $cloudinary->uploadApi()->upload($cheminTemp, [
             'folder'        => 'dgs_track/qrcodes',
             'public_id'     => $codeSuivi,
             'resource_type' => 'image',
@@ -262,13 +264,16 @@ class ColisController extends Controller
 
         $urlSuiviPublic = env('FRONTEND_URL', 'http://localhost:5173') . "/suivi/{$codeSuivi}";
 
+        $coutAED = round($request->cout_transport * 0.0062);
+
         $message = "Bonjour {$clientSansCompte->nom}, votre colis a été enregistré avec succès chez DGS Africa.\n\n"
             . "Suivez votre colis ici : {$urlSuiviPublic}\n"
             . "Code de suivi : {$codeSuivi}\n"
-            . "Montant à payer : " . number_format($colis->cout_transport, 0, ',', ' ') . " XOF\n\n"
+            . "Montant à payer : " . number_format($colis->cout_transport, 0, ',', ' ') . " FCFA"
+            . " (≈ {$coutAED} AED)\n\n"
             . "Merci de votre confiance.";
 
-        $vonageService = new \App\Services\VonageService();
+        $vonageService  = new \App\Services\VonageService();
         $succesWhatsapp = $vonageService->envoyerWhatsApp($clientSansCompte->telephone_whatsapp, $message);
 
         \App\Models\Notification::create([
@@ -282,7 +287,7 @@ class ColisController extends Controller
 
         return response()->json([
             'client_sans_compte' => $clientSansCompte,
-            'colis' => $colis,
+            'colis'              => $colis,
         ], 201);
     }
 

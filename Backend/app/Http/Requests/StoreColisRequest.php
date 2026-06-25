@@ -15,12 +15,13 @@ class StoreColisRequest extends FormRequest
     {
         return [
             'client_id'              => 'nullable|exists:users,id',
-            'expediteur'              => 'required|string|max:100',
-            'origine'                 => 'required|string|max:100',
-            'destination'             => 'required|string|max:100',
-            'poids_kg'                => 'required|numeric|gt:0',
-            'volume_m3'               => 'required|numeric|gt:0',
-            'cout_transport'          => 'required|numeric|gt:0',
+            'expediteur'             => 'required|string|max:100',
+            'nom_destinataire'       => 'nullable|string|max:100',
+            'telephone_destinataire' => 'nullable|string|max:20',
+            'origine'                => 'required|string|max:100',
+            'destination'            => 'required|string|max:100',
+            'poids_kg'               => 'required|numeric|gt:0',
+            'cout_transport'         => 'required|numeric|gt:0',
         ];
     }
 
@@ -28,7 +29,6 @@ class StoreColisRequest extends FormRequest
     {
         return [
             'poids_kg.gt'       => 'Le poids doit être strictement positif.',
-            'volume_m3.gt'      => 'Le volume doit être strictement positif.',
             'cout_transport.gt' => 'Le coût de transport doit être strictement positif.',
         ];
     }
