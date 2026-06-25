@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import apiFetch from '../api/client';
 
 const STATUT_LABELS = {
@@ -18,9 +18,40 @@ export default function SuiviPublic() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function load() {
+      const token = localStorage.getItem('dgs_token');
+
+      if (token) {
+        try {
+          const user = await apiFetch('/auth/me');
+
+          if (user.role === 'agent' || user.role === 'admin') {
+            const colis = await apiFetch(`/colis?recherche=${codeSuivi}`);
+            if (colis.data && colis.data.length > 0) {
+              navigate(`/agent/colis/${colis.data[0].id}`, { replace: true });
+              return;
+            }
+          } else if (user.role === 'client') {
+            const colis = await apiFetch(`/colis?recherche=${codeSuivi}`);
+            if (colis.data && colis.data.length > 0) {
+              navigate(`/colis/${colis.data[0].id}`, { replace: true });
+              return;
+            } else {
+              setError('Ce colis ne vous appartient pas.');
+              setLoading(false);
+              return;
+            }
+          }
+        } catch (err) {
+          // Token invalide, on continue avec le suivi public
+          localStorage.removeItem('dgs_token');
+        }
+      }
+
+      // Utilisateur non connecté → suivi public
       try {
         const result = await apiFetch(`/suivi/${codeSuivi}`);
         setData(result);
@@ -35,7 +66,6 @@ export default function SuiviPublic() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-950 via-slate-950 to-slate-950 px-4 py-12">
-      {/* Header */}
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-orange-500">DGS Track</h1>
@@ -53,7 +83,7 @@ export default function SuiviPublic() {
             <div className="w-14 h-14 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto text-2xl mb-4">
               ✗
             </div>
-            <h2 className="text-lg font-bold text-slate-900">Code introuvable</h2>
+            <h2 className="text-lg font-bold text-slate-900">Accès refusé</h2>
             <p className="text-slate-500 text-sm mt-2">{error}</p>
             <Link to="/login" className="text-orange-600 text-sm font-medium hover:underline mt-4 inline-block">
               Se connecter →
@@ -92,7 +122,6 @@ export default function SuiviPublic() {
             <div className="bg-white rounded-2xl p-6">
               <h3 className="font-bold text-slate-900 mb-6">Progression</h3>
               <div className="relative">
-                {/* Ligne de progression */}
                 <div className="absolute top-3 left-3 right-3 h-0.5 bg-slate-200" />
                 <div
                   className="absolute top-3 left-3 h-0.5 bg-orange-500 transition-all"
@@ -100,7 +129,6 @@ export default function SuiviPublic() {
                     width: `${(STATUT_ORDER.indexOf(data.statut) / (STATUT_ORDER.length - 1)) * 100}%`
                   }}
                 />
-
                 <div className="relative flex justify-between">
                   {STATUT_ORDER.map((statut, index) => {
                     const atteint = index <= STATUT_ORDER.indexOf(data.statut);
@@ -108,9 +136,7 @@ export default function SuiviPublic() {
                     return (
                       <div key={statut} className="flex flex-col items-center gap-2">
                         <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                          atteint
-                            ? 'bg-orange-500 border-orange-500'
-                            : 'bg-white border-slate-300'
+                          atteint ? 'bg-orange-500 border-orange-500' : 'bg-white border-slate-300'
                         } ${estActuel ? 'ring-4 ring-orange-100' : ''}`}>
                           {atteint && <div className="w-2 h-2 rounded-full bg-white" />}
                         </div>
@@ -148,7 +174,6 @@ export default function SuiviPublic() {
               </div>
             )}
 
-            {/* Footer */}
             <div className="text-center text-slate-400 text-xs pb-4">
               <p>DGS Africa Logistics — Suivi de colis international</p>
               <Link to="/login" className="text-orange-400 hover:underline mt-1 inline-block">
