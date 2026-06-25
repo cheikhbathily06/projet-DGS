@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:8000/api';
+const API_URL = 'https://projet-dgs-production.up.railway.app/api';
 
 function getToken() {
   return localStorage.getItem('dgs_token');
