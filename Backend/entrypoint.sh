@@ -12,5 +12,8 @@ php-fpm -D
 # Attendre que php-fpm soit prêt
 sleep 2
 
+# Test config nginx
+nginx -t
+
 # Démarre nginx au premier plan
 nginx -g "daemon off;"
