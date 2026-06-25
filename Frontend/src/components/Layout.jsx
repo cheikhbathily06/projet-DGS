@@ -12,9 +12,9 @@ const NAV_CLIENT = [
 const NAV_AGENT = [
   { label: 'Tableau de bord', path: '/agent/dashboard' },
   { label: 'Colis', path: '/agent/colis' },
+  { label: 'Scanner un colis', path: '/agent/scanner' },
   { label: 'Nouveau colis', path: '/agent/colis/nouveau' },
 ];
-
 const NAV_ADMIN = [
   { label: 'Tableau de bord', path: '/admin/dashboard' },
   { label: 'Utilisateurs', path: '/admin/users' },
