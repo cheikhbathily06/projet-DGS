@@ -95,13 +95,14 @@ export default function AdminDashboard() {
     : 0;
 
   const caAEDTotal = Math.round((data.ca_total || 0) * TAUX_AED_PAR_FCFA);
+  const caMoisActuel = caMensuelData.length > 0 ? caMensuelData[caMensuelData.length - 1] : null;
 
   return (
     <Layout>
       <h2 className="text-2xl sm:text-3xl font-bold text-white">Tableau de bord</h2>
       <p className="text-slate-300 mt-1 text-base">Vue globale de la plateforme DGS Track.</p>
 
-      {/* KPI */}
+      {/* KPI principaux */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8">
         {[
           { label: 'Total colis', value: data.total_colis, color: 'border-orange-500' },
@@ -128,12 +129,12 @@ export default function AdminDashboard() {
           </p>
         </div>
         <div className="bg-white rounded-xl p-5 border-l-4 border-teal-500">
-          <p className="text-sm font-medium text-slate-500">CA moyen par colis</p>
+          <p className="text-sm font-medium text-slate-500">CA ce mois-ci</p>
           <p className="text-2xl sm:text-3xl font-bold text-slate-900 mt-2">
-            {data.total_colis > 0 ? formatFCFA((data.ca_total || 0) / data.total_colis) : '0 FCFA'}
+            {caMoisActuel ? formatFCFA(caMoisActuel.ca) : '0 FCFA'}
           </p>
           <p className="text-sm text-orange-600 font-medium mt-1">
-            ≈ {data.total_colis > 0 ? Math.round(((data.ca_total || 0) / data.total_colis) * TAUX_AED_PAR_FCFA).toLocaleString('fr-FR') : 0} AED
+            ≈ {caMoisActuel ? caMoisActuel.caAED.toLocaleString('fr-FR') : 0} AED
           </p>
         </div>
       </div>
@@ -211,8 +212,7 @@ export default function AdminDashboard() {
                   tickFormatter={(v) => v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v} />
                 <Tooltip
                   formatter={(value) => [formatFCFA(value) + ` (≈ ${Math.round(value * TAUX_AED_PAR_FCFA).toLocaleString()} AED)`, 'CA']}
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
-                />
+                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }} />
                 <Area type="monotone" dataKey="ca" stroke="#22c55e" strokeWidth={2} fill="url(#caGradient)"
                   dot={{ fill: '#22c55e', r: 4 }} activeDot={{ r: 6 }} />
               </AreaChart>
