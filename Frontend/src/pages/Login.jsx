@@ -78,8 +78,8 @@ export default function Login() {
                 Se souvenir de moi
               </label>
               <Link to="/forgot-password" className="text-orange-600 font-medium hover:underline">
-  Mot de passe oublié
-</Link>
+                Mot de passe oublié
+              </Link>
             </div>
 
             <button
@@ -105,22 +105,25 @@ export default function Login() {
       </div>
 
       {/* Colonne droite - visuel */}
-      <div className="hidden lg:flex lg:w-1/2 bg-slate-950 relative flex-col justify-between p-8">
+      <div className="hidden lg:flex lg:w-1/2 bg-slate-950 relative flex-col justify-center items-start p-12">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-950 via-slate-950 to-slate-950" />
 
-        <div className="relative z-10">
-          <span className="text-3xl font-bold text-orange-500 tracking-wide">
-            DGS Track
-          </span>
-        </div>
-
-        <div className="relative z-10 bg-slate-900/80 backdrop-blur rounded-xl p-6 border border-slate-800">
-          <span className="text-xs font-semibold text-orange-500 tracking-wide">
-            COUVERTURE INTERNATIONALE
-          </span>
-          <h2 className="text-2xl font-bold text-white mt-2 leading-snug">
-            Suivez vos expéditions en temps réel partout dans le monde.
+        <div className="relative z-10 max-w-md">
+          <h2 className="text-4xl font-bold text-orange-500 leading-tight">
+            Bienvenue sur<br />DGS Track
           </h2>
+          <p className="text-slate-300 mt-4 text-lg leading-relaxed">
+            La plateforme de suivi de colis qui connecte les Émirats Arabes Unis au Sénégal, en temps réel.
+          </p>
+
+          <div className="mt-10 bg-slate-900/80 backdrop-blur rounded-xl p-6 border border-slate-800">
+            <span className="text-xs font-semibold text-orange-500 tracking-wide">
+              COUVERTURE INTERNATIONALE
+            </span>
+            <h3 className="text-2xl font-bold text-white mt-2 leading-snug">
+              Suivez vos expéditions en temps réel partout dans le monde.
+            </h3>
+          </div>
         </div>
       </div>
     </div>
