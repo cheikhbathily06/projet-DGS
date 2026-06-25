@@ -14,6 +14,8 @@ const STATUT_LABELS = {
 
 const STATUT_ORDER = ['recu', 'expedie', 'en_transit', 'arrive', 'disponible', 'livre'];
 
+const TAUX_AED_PAR_FCFA = 0.0062;
+
 export default function ColisDetail() {
   const { id } = useParams();
   const [colis, setColis] = useState(null);
@@ -42,11 +44,7 @@ export default function ColisDetail() {
   }, [id]);
 
   if (loading) {
-    return (
-      <Layout>
-        <p className="text-slate-300">Chargement...</p>
-      </Layout>
-    );
+    return <Layout><p className="text-slate-300">Chargement...</p></Layout>;
   }
 
   if (error) {
@@ -61,6 +59,7 @@ export default function ColisDetail() {
   }
 
   const statutActuelIndex = STATUT_ORDER.indexOf(colis.statut);
+  const coutAED = Math.round(Number(colis.cout_transport) * TAUX_AED_PAR_FCFA);
 
   return (
     <Layout>
@@ -73,7 +72,7 @@ export default function ColisDetail() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mt-6">
-        {/* Infos colis + QR code */}
+        {/* Infos colis + QR code + Photo */}
         <div className="bg-white rounded-xl p-4 sm:p-6">
           <h3 className="font-bold text-slate-900 mb-4">Détails du colis</h3>
 
@@ -86,30 +85,42 @@ export default function ColisDetail() {
               <dt className="text-slate-500">Destination</dt>
               <dd className="text-slate-800 font-medium">{colis.destination}</dd>
             </div>
+            {colis.nom_destinataire && (
+              <div className="flex justify-between">
+                <dt className="text-slate-500">Destinataire</dt>
+                <dd className="text-slate-800 font-medium">{colis.nom_destinataire}</dd>
+              </div>
+            )}
             <div className="flex justify-between">
               <dt className="text-slate-500">Poids</dt>
               <dd className="text-slate-800 font-medium">{colis.poids_kg} kg</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-slate-500">Volume</dt>
-              <dd className="text-slate-800 font-medium">{colis.volume_m3} m³</dd>
-            </div>
-            <div className="flex justify-between">
               <dt className="text-slate-500">Coût</dt>
               <dd className="text-slate-800 font-medium">
-                {Number(colis.cout_transport).toLocaleString('fr-FR')} XOF
+                {Number(colis.cout_transport).toLocaleString('fr-FR')} FCFA
+                <span className="text-orange-600 ml-1">(≈ {coutAED} AED)</span>
               </dd>
             </div>
           </dl>
 
+          {/* QR Code */}
           {colis.qr_code_url && (
             <div className="mt-6 text-center">
-              <img
-                src={colis.qr_code_url}
-                alt="QR Code de suivi"
-                className="w-32 h-32 mx-auto"
-              />
+              <img src={colis.qr_code_url} alt="QR Code de suivi" className="w-32 h-32 mx-auto" />
               <p className="text-xs text-slate-400 mt-2">Scannez pour partager le suivi</p>
+            </div>
+          )}
+
+          {/* Photo du colis */}
+          {colis.photo_url && (
+            <div className="mt-4">
+              <p className="text-xs font-medium text-slate-600 mb-2">Photo du colis</p>
+              <img
+                src={colis.photo_url}
+                alt="Photo du colis"
+                className="w-full h-40 object-cover rounded-lg border border-slate-200"
+              />
             </div>
           )}
         </div>
@@ -132,7 +143,8 @@ export default function ColisDetail() {
                       } ${estActuel ? 'ring-4 ring-orange-100' : ''}`}
                     />
                     {index < STATUT_ORDER.length - 1 && (
-                      <div className="hidden sm:block h-0.5 flex-1 ml-2 ${atteint ? 'bg-orange-500' : 'bg-slate-200'}"
+                      <div
+                        className="hidden sm:block h-0.5 flex-1 ml-2"
                         style={{ background: index < statutActuelIndex ? '#f97316' : '#e2e8f0' }}
                       />
                     )}
