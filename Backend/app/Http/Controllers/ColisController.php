@@ -54,7 +54,7 @@ class ColisController extends Controller
             'cree_par' => $request->user()->id,
         ]);
 
-        $urlSuivi = url("/suivi/{$codeSuivi}");
+        $urlSuivi = env('FRONTEND_URL', 'http://localhost:5173') . "/suivi/{$codeSuivi}";
         $qrCodeSvg = QrCode::format('svg')->size(300)->generate($urlSuivi);
 
         $cheminTemp = storage_path("app/temp_qr_{$codeSuivi}.svg");
@@ -166,7 +166,7 @@ class ColisController extends Controller
 
         if ($colis->client_sans_compte_id && $statut === 'arrive') {
             $clientSansCompte = $colis->clientSansCompte;
-            $urlSuiviPublic = url("/suivi/{$colis->code_suivi}");
+            $urlSuiviPublic = env('FRONTEND_URL', 'http://localhost:5173') . "/suivi/{$colis->code_suivi}";
 
             $message = "Bonjour {$clientSansCompte->nom}, votre colis {$colis->code_suivi} est arrivé à destination.\n\n"
                 . "Détails du colis : {$urlSuiviPublic}\n\n"
@@ -242,7 +242,7 @@ class ColisController extends Controller
             'cree_par'               => $request->user()->id,
         ]);
 
-        $urlSuivi = url("/suivi/{$codeSuivi}");
+        $urlSuivi = env('FRONTEND_URL', 'http://localhost:5173') . "/suivi/{$codeSuivi}";
         $qrCodeSvg = QrCode::format('svg')->size(300)->generate($urlSuivi);
 
         $cheminTemp = storage_path("app/temp_qr_{$codeSuivi}.svg");
@@ -260,7 +260,7 @@ class ColisController extends Controller
         $colis->qr_code_url = $resultat['secure_url'];
         $colis->save();
 
-        $urlSuiviPublic = url("/suivi/{$codeSuivi}");
+        $urlSuiviPublic = env('FRONTEND_URL', 'http://localhost:5173') . "/suivi/{$codeSuivi}";
 
         $message = "Bonjour {$clientSansCompte->nom}, votre colis a été enregistré avec succès chez DGS Africa.\n\n"
             . "Suivez votre colis ici : {$urlSuiviPublic}\n"
@@ -352,21 +352,22 @@ class ColisController extends Controller
     }
 
     public function dashboardAgent(Request $request)
-{
-    $resume = Colis::selectRaw('statut, count(*) as total')
-        ->groupBy('statut')
-        ->pluck('total', 'statut');
+    {
+        $totalColis = Colis::count();
 
-    $totalColis = Colis::count();
-    $derniersMovements = \App\Models\MouvementColis::with('colis:id,code_suivi,destination')
-        ->orderBy('date_evenement', 'desc')
-        ->take(5)
-        ->get();
+        $resume = Colis::selectRaw('statut, count(*) as total')
+            ->groupBy('statut')
+            ->pluck('total', 'statut');
 
-    return response()->json([
-        'total_colis'       => $totalColis,
-        'resume_par_statut' => $resume,
-        'derniers_mouvements' => $derniersMovements,
-    ]);
-}
+        $derniersMovements = \App\Models\MouvementColis::with('colis:id,code_suivi,destination')
+            ->orderBy('date_evenement', 'desc')
+            ->take(10)
+            ->get();
+
+        return response()->json([
+            'total_colis'         => $totalColis,
+            'resume_par_statut'   => $resume,
+            'derniers_mouvements' => $derniersMovements,
+        ]);
+    }
 }
