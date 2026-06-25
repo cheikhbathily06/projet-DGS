@@ -37,7 +37,7 @@ export default function Login() {
       <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-16 py-12 bg-white">
         <div className="max-w-md w-full mx-auto">
           <h1 className="text-2xl font-bold text-slate-900">DGS Track</h1>
-          <p className="text-sm text-slate-500 mt-1">A DGS Africa's web app</p>
+          <p className="text-sm text-slate-500 mt-1">A DGS web app</p>
 
           <p className="mt-10 text-slate-600">Connectez-vous à votre espace</p>
 
