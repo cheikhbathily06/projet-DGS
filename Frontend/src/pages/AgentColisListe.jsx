@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import Layout from '../components/Layout';
 import apiFetch from '../api/client';
 
@@ -30,6 +30,17 @@ export default function AgentColisListe() {
   const [recherche, setRecherche] = useState('');
   const [rechercheInput, setRechercheInput] = useState('');
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Récupère le paramètre recherche depuis l'URL (venant du scanner)
+  useEffect(() => {
+    const rechercheUrl = searchParams.get('recherche');
+    if (rechercheUrl) {
+      setRecherche(rechercheUrl);
+      setRechercheInput(rechercheUrl);
+    }
+  }, []);
 
   useEffect(() => {
     const timeout = setTimeout(() => setRecherche(rechercheInput), 400);
@@ -48,6 +59,12 @@ export default function AgentColisListe() {
         const data = await apiFetch(`/colis?${params.toString()}`);
         setColis(data.data);
         setPagination(data);
+
+        // Si un seul colis trouvé via recherche (scan QR), redirige directement
+        if (recherche && data.data.length === 1) {
+          navigate(`/agent/colis/${data.data[0].id}`, { replace: true });
+          return;
+        }
       } catch (err) {
         // gestion silencieuse
       } finally {
