@@ -22,6 +22,7 @@ class StoreColisRequest extends FormRequest
             'destination'            => 'required|string|max:100',
             'poids_kg'               => 'required|numeric|gt:0',
             'cout_transport'         => 'required|numeric|gt:0',
+            'photo_url'              => 'nullable|string',
         ];
     }
 

@@ -45,14 +45,12 @@ export default function AgentColisDetail() {
   const [statutError, setStatutError] = useState('');
   const [statutSuccess, setStatutSuccess] = useState('');
 
-  // Modification
   const [editMode, setEditMode] = useState(false);
   const [editForm, setEditForm] = useState({});
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState('');
   const [editSuccess, setEditSuccess] = useState('');
 
-  // Photo
   const [photoLoading, setPhotoLoading] = useState(false);
   const [photoUrl, setPhotoUrl] = useState('');
 
@@ -127,7 +125,6 @@ export default function AgentColisDetail() {
       const data = await response.json();
       setPhotoUrl(data.secure_url);
 
-      // Sauvegarde automatique de la photo
       await apiFetch(`/colis/${id}`, {
         method: 'PUT',
         body: JSON.stringify({ photo_url: data.secure_url }),
@@ -189,27 +186,23 @@ export default function AgentColisDetail() {
     pdf.text('BON DE LIVRAISON', pageWidth - margin, 13, { align: 'right' });
 
     y = 32;
-
     pdf.setTextColor(0, 0, 0);
     pdf.setFontSize(22);
     pdf.setFont('helvetica', 'bold');
     pdf.text(colis.code_suivi, pageWidth / 2, y, { align: 'center' });
 
     y += 8;
-
     pdf.setFontSize(11);
     pdf.setFont('helvetica', 'normal');
     pdf.setTextColor(100, 100, 100);
     pdf.text(`Statut : ${STATUT_LABELS[colis.statut]}`, pageWidth / 2, y, { align: 'center' });
 
     y += 12;
-
     pdf.setDrawColor(200, 200, 200);
     pdf.setFillColor(248, 250, 252);
     pdf.roundedRect(margin, y, pageWidth - margin * 2, 60, 3, 3, 'FD');
 
     y += 8;
-
     pdf.setFontSize(10);
     pdf.setFont('helvetica', 'bold');
     pdf.setTextColor(30, 58, 138);
@@ -217,7 +210,6 @@ export default function AgentColisDetail() {
     pdf.text('DESTINATAIRE', pageWidth / 2 + 5, y);
 
     y += 6;
-
     pdf.setFont('helvetica', 'normal');
     pdf.setTextColor(30, 30, 30);
     pdf.setFontSize(10);
@@ -236,20 +228,17 @@ export default function AgentColisDetail() {
     pdf.text(`Destination : ${colis.destination}`, margin + 5, y);
 
     y += 20;
-
     pdf.setDrawColor(200, 200, 200);
     pdf.setFillColor(255, 255, 255);
     pdf.roundedRect(margin, y, pageWidth - margin * 2, 38, 3, 3, 'FD');
 
     y += 8;
-
     pdf.setFontSize(10);
     pdf.setFont('helvetica', 'bold');
     pdf.setTextColor(30, 58, 138);
     pdf.text('DÉTAILS DU COLIS', margin + 5, y);
 
     y += 7;
-
     const col1X = margin + 5;
     const col2X = pageWidth / 2 + 5;
     const coutAED = Math.round(Number(colis.cout_transport) * TAUX_AED_PAR_FCFA);
@@ -271,7 +260,6 @@ export default function AgentColisDetail() {
     pdf.text(new Date(colis.cree_le).toLocaleDateString('fr-FR'), col2X + 25, y);
 
     y += 8;
-
     pdf.setFont('helvetica', 'normal');
     pdf.setTextColor(80, 80, 80);
     pdf.text('Coût :', col1X, y);
@@ -365,23 +353,17 @@ export default function AgentColisDetail() {
         </div>
       </div>
 
-      {editSuccess && (
-        <p className="text-green-400 text-sm mt-2">{editSuccess}</p>
-      )}
+      {editSuccess && <p className="text-green-400 text-sm mt-2">{editSuccess}</p>}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mt-6">
-        {/* Infos colis */}
         <div className="bg-white rounded-xl p-4 sm:p-6">
           {editMode ? (
             <>
               <h3 className="font-bold text-slate-900 mb-4">Modifier le colis</h3>
               <form onSubmit={handleEditSubmit} className="space-y-3">
                 {editError && (
-                  <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg px-3 py-2">
-                    {editError}
-                  </div>
+                  <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg px-3 py-2">{editError}</div>
                 )}
-
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Expéditeur</label>
                   <input name="expediteur" value={editForm.expediteur} onChange={handleEditChange}
@@ -399,20 +381,27 @@ export default function AgentColisDetail() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Origine</label>
-                  <input name="origine" value={editForm.origine} onChange={handleEditChange}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900" />
+                  <select name="origine" value={editForm.origine} onChange={handleEditChange}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900">
+                    <option value="">Sélectionner</option>
+                    <option value="Dubai, UAE">Dubai, UAE</option>
+                    <option value="Dakar, Sénégal">Dakar, Sénégal</option>
+                  </select>
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Destination</label>
-                  <input name="destination" value={editForm.destination} onChange={handleEditChange}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900" />
+                  <select name="destination" value={editForm.destination} onChange={handleEditChange}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900">
+                    <option value="">Sélectionner</option>
+                    <option value="Dakar, Sénégal">Dakar, Sénégal</option>
+                    <option value="Dubai, UAE">Dubai, UAE</option>
+                  </select>
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">Poids (kg)</label>
                   <input name="poids_kg" type="number" step="0.01" min="0.01" value={editForm.poids_kg} onChange={handleEditChange}
                     className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900" />
                 </div>
-
                 {editForm.poids_kg > 0 && (
                   <div className="bg-blue-50 rounded-lg px-3 py-2 text-xs">
                     <span className="font-bold text-blue-900">{Number(editForm.cout_transport).toLocaleString('fr-FR')} FCFA</span>
@@ -420,7 +409,6 @@ export default function AgentColisDetail() {
                     <span className="font-bold text-orange-600">≈ {coutEditAED} AED</span>
                   </div>
                 )}
-
                 <button type="submit" disabled={editLoading}
                   className="w-full bg-blue-950 text-white text-sm font-medium py-2 rounded-lg hover:bg-blue-900 transition disabled:opacity-50">
                   {editLoading ? 'Sauvegarde...' : 'Sauvegarder'}
@@ -468,7 +456,6 @@ export default function AgentColisDetail() {
                 </div>
               </dl>
 
-              {/* QR Code */}
               {colis.qr_code_url && (
                 <div className="mt-6 text-center">
                   <img src={colis.qr_code_url} alt="QR Code" className="w-28 h-28 mx-auto" />
@@ -476,7 +463,6 @@ export default function AgentColisDetail() {
                 </div>
               )}
 
-              {/* Photo du colis */}
               <div className="mt-4">
                 <p className="text-xs font-medium text-slate-600 mb-2">Photo du colis</p>
                 {photoUrl ? (
@@ -499,7 +485,6 @@ export default function AgentColisDetail() {
           )}
         </div>
 
-        {/* Statut + historique */}
         <div className="lg:col-span-2 space-y-4">
           <div className="bg-white rounded-xl p-4 sm:p-6">
             <h3 className="font-bold text-slate-900 mb-4">Progression du colis</h3>
@@ -529,23 +514,14 @@ export default function AgentColisDetail() {
               <div className="space-y-3">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Commentaire (optionnel)</label>
-                  <input
-                    type="text"
-                    value={commentaire}
-                    onChange={(e) => setCommentaire(e.target.value)}
+                  <input type="text" value={commentaire} onChange={(e) => setCommentaire(e.target.value)}
                     placeholder="Note sur cette transition..."
-                    className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900"
-                  />
+                    className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900" />
                 </div>
-
                 {statutError && <p className="text-red-600 text-sm">{statutError}</p>}
                 {statutSuccess && <p className="text-green-600 text-sm">{statutSuccess}</p>}
-
-                <button
-                  onClick={changerStatut}
-                  disabled={statutLoading}
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-2.5 rounded-lg transition disabled:opacity-50"
-                >
+                <button onClick={changerStatut} disabled={statutLoading}
+                  className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-2.5 rounded-lg transition disabled:opacity-50">
                   {statutLoading ? 'Mise à jour...' : `Passer à "${STATUT_LABELS[prochainStatut]}"`}
                 </button>
               </div>
