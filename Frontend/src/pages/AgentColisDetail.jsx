@@ -136,14 +136,26 @@ export default function AgentColisDetail() {
     }
   }
 
-  function handleEditChange(e) {
-    const { name, value } = e.target;
-    setEditForm((prev) => ({
-      ...prev,
-      [name]: value,
-      ...(name === 'poids_kg' ? { cout_transport: Math.round(parseFloat(value || 0) * 10000) } : {}),
-    }));
+ function handleEditChange(e) {
+  const { name, value } = e.target;
+  
+  let updates = { [name]: value };
+  
+  if (name === 'origine') {
+    if (value === 'Dakar, Sénégal') updates.destination = 'Dubai, UAE';
+    else if (value === 'Dubai, UAE') updates.destination = 'Dakar, Sénégal';
   }
+  if (name === 'destination') {
+    if (value === 'Dakar, Sénégal') updates.origine = 'Dubai, UAE';
+    else if (value === 'Dubai, UAE') updates.origine = 'Dakar, Sénégal';
+  }
+  
+  if (name === 'poids_kg') {
+    updates.cout_transport = Math.round(parseFloat(value || 0) * 10000);
+  }
+  
+  setEditForm((prev) => ({ ...prev, ...updates }));
+}
 
   async function handleEditSubmit(e) {
     e.preventDefault();

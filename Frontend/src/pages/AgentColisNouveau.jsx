@@ -37,13 +37,27 @@ export default function AgentColisNouveau() {
   const coutAED = Math.round(coutFCFA * TAUX_AED_PAR_FCFA);
 
   function handleChange(e) {
-    const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-      ...(name === 'poids_kg' ? { cout_transport: Math.round(parseFloat(value || 0) * TAUX_FCFA_PAR_KG) } : {}),
-    }));
+  const { name, value } = e.target;
+  
+  let updates = { [name]: value };
+  
+  // Auto-remplissage origine/destination
+  if (name === 'origine') {
+    if (value === 'Dakar, Sénégal') updates.destination = 'Dubai, UAE';
+    else if (value === 'Dubai, UAE') updates.destination = 'Dakar, Sénégal';
   }
+  if (name === 'destination') {
+    if (value === 'Dakar, Sénégal') updates.origine = 'Dubai, UAE';
+    else if (value === 'Dubai, UAE') updates.origine = 'Dakar, Sénégal';
+  }
+  
+  // Calcul automatique du coût
+  if (name === 'poids_kg') {
+    updates.cout_transport = Math.round(parseFloat(value || 0) * TAUX_FCFA_PAR_KG);
+  }
+  
+  setForm((prev) => ({ ...prev, ...updates }));
+}
 
   async function handlePhotoUpload(e) {
     const file = e.target.files[0];
